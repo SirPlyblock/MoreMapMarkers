@@ -30,12 +30,16 @@ local points = {
     { 2, 1, 0.539, 0.528, "Mailbox", "mail", "", nil },--Alah'Thalas
     { 2, 25, 0.617, 0.760, "Mailbox", "mail", "", nil },--Stormwind City
     { 2, 25, 0.745, 0.553, "Mailbox", "mail", "", nil },--Stormwind City
+    { 2, 24, 0.434, 0.415, "Mailbox", "mail", "", nil },--Silverpine Forest
+    { 2, 27, 0.454, 0.551, "Mailbox", "mail", "", nil },--Swamp of Sorrows
+    { 2, 30, 0.789, 0.805, "Mailbox", "mail", "", nil },--The Hinterlands
     -- Reagent vendors in Eastern Kingfom
     {2, 33, 0.828, 0.158, "Reagent Vendor", "reag", "Hannah Akeley", "Horde"}, --Undercity
     { 1, 20, 0.454, 0.565, "Reagent Vendor", "reag", "Horthus", "Horde" },--Orgrimmar
     { 2, 33, 0.697, 0.391, "Reagent Vendor", "reag", "Thomas Mordan", "Horde" },--Undercity
     -- Flight masters in Kalimdor
     { 1, 20, 0.451, 0.639, "Flight Master", "flight", "Doras", "Horde" },
+    { 1, 22, 0.457, 0.593, "Flight Master", "flight", "", "Horde" },--Stonetalon Mountains
     {1, 8, 0.216, 0.741, "Flight Master", "flight", "", "Horde"},
     { 1, 26, 0.515, 0.303, "Flight Master", "flight", "Devrak", "Horde" },
     { 1, 2, 0.732, 0.616, "Flight Master", "flight", "Vhulgra", "Horde" },
@@ -48,16 +52,126 @@ local points = {
     { 1, 23, 0.516, 0.254, "Flight Master", "flight", "Bulkrek Ragefist", "Horde" },--Tanaris
     { 1, 23, 0.510, 0.294, "Flight Master", "flight", "Bera Stonehammer", "Alliance" },--Tanaris
     --Flight masters in Eastern Kingdoms
+    { 2, 24, 0.434, 0.415, "Flight Master", "flight", "Nadia Vernon", nil },--Silverpine Forest
     {2, 33, 0.633, 0.486, "Flight Master", "flight", "Michael Garrett", "Horde"},
     {2, 31, 0.041, 0.607, "Flight Master", "flight", "Mary Willowfield", "Horde"},
     { 2, 26, 0.325, 0.294, "Flight Master", "flight", "Thysta", "Horde" },
     { 2, 26, 0.269, 0.771, "Flight Master", "flight", "Gringer", "Horde" }, -- BB
     { 2, 26, 0.275, 0.778, "Flight Master", "flight", "Gyll", "Alliance" }, -- BB
     { 2, 3, 0.730, 0.327, "Flight Master", "flight", "Urda", "Horde" },--Arathi Highlands
-    { 2, 16, 0.601, 0.186, "Flight Master", "flight", "Zarise", "Horde" }, -- Tarren Mill
-    { 2, 1, 0.434, 0.604, "Flight Master", "flight", "Voryn Skystrider", "Alliance" },--Alah'Thalas
-    { 2, 25, 0.709, 0.725, "Flight Master", "flight", "Dungar Longdrink", "Alliance" }--Stormwind City
+    { 2, 24, 0.456, 0.426, "Flight Master", "flight", "Karos Razok", "Horde" },--Silverpine Forest
+    { 2, 1, 0.434, 0.604, "Flight Master", "flight", "Voryn Skystrider", "Alliance" },
+    { 2, 25, 0.709, 0.725, "Flight Master", "flight", "Dungar Longdrink", "Alliance" }, --Stormwind City
+    { 2, 27, 0.461, 0.548, "Flight Master", "flight", "Breyk", "Horde" }, --Swamp of Sorrows
+    { 2, 30, 0.817, 0.817, "Flight Master", "flight", "Gorkas", "Horde" } --The Hinterlands
 }
+
+-- local function CreateMapMarkerUI()
+--     locationProperties = CreateFrame("Frame", "MoarMarkerInfo", UIParent)
+--     locationProperties:SetWidth(320)
+--     locationProperties:SetHeight(220)
+--     locationProperties:SetPoint("CENTER", UIParent, "CENTER")
+--     locationProperties:SetBackdrop({
+--         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+--         edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+--         tile = true,
+--         tileSize = 32,
+--         edgeSize = 32,
+--         insets = {
+--             left = 11,
+--             right = 11,
+--             top = 11,
+--             bottom = 11
+--         }
+--     })
+--     locationProperties:SetMovable(true)
+--     locationProperties:EnableMouse(true)
+--     locationProperties:RegisterForDrag("LeftButton")
+--     locationProperties:SetScript("OnDragStart", function()
+--         this:StartMoving()
+--     end)
+--     config:SetScript("OnDragStop", function()
+--         this:StopMovingOrSizing()
+--     end)
+    
+--     local title = config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+--     title:SetPoint("TOP", 0, -15)
+--     title:SetText("Add Map Marker Location")
+
+--     -- Flight point
+--     local flightPointLabel = config:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+--     flightPointLabel:SetPoint("TOPLEFT", 20, -45)
+--     flightPointLabel:SetText("Flight point")
+--     local flightPointCheckBox = CreateFrame("CheckButton", nil, config, "UICheckButtonTemplate")
+--     flightPointCheckBox:SetPoint("LEFT", flightPointLabel, "RIGHT", 5, 0)
+--     flightPointCheckBox:SetWidth(24)
+--     flightPointCheckBox:SetHeight(24)
+--     flightPointCheckBox:SetScript("OnClick", function()
+--         local checked = flightPointCheckBox:GetChecked()
+--         if checked then
+--             mailboxCheckBox:SetChecked(false)
+--             reagentCheckBox:SetChecked(false)
+--         end
+--     end)
+
+--     -- Mailbox
+--     local mailboxLabel = config:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+--     mailboxLabel:SetPoint("TOPLEFT", 20, -25)
+--     mailboxLabel:SetText("Mailbox")
+--     local mailboxCheckBox = CreateFrame("CheckButton", nil, config, "UICheckButtonTemplate")
+--     mailboxCheckBox:SetPoint("LEFT", mailboxLabel, "RIGHT", 5, 0)
+--     mailboxCheckBox:SetWidth(24)
+--     mailboxCheckBox:SetHeight(24)
+--     mailboxCheckBox:SetScript("OnClick", function()
+--         local checked = mailboxCheckBox:GetChecked()
+--         if checked then
+--             flightPointCheckBox:SetChecked(false)
+--             reagentCheckBox:SetChecked(false)
+--         end
+--     end)
+
+--     -- Reagents
+--     local reagentLabel = config:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+--     reagentLabel:SetPoint("TOPLEFT", 20, -5)
+--     reagentLabel:SetText("Reagents")
+--     local reagentCheckBox = CreateFrame("CheckButton", nil, config, "UICheckButtonTemplate")
+--     reagentCheckBox:SetPoint("LEFT", reagentLabel, "RIGHT", 5, 0)
+--     reagentCheckBox:SetWidth(24)
+--     reagentCheckBox:SetHeight(24)
+--     reagentCheckBox:SetScript("OnClick", function()
+--         local checked = reagentCheckBox:GetChecked()
+--         if checked then
+--             flightPointCheckBox:SetChecked(false)
+--             reagentCheckBox:SetChecked(false)
+--         end
+--     end)
+
+
+
+--     -- Add category toggles
+--     -- dungeonRaidsToggle = CreateToggleCheckbox(config, 20, -75, "Show Dungeons & Raids", "showDungeonRaids")
+--     -- transportToggle = CreateToggleCheckbox(config, 20, -100, "Show Transport (Boats, Zeppelins, Trams)", "showTransport")
+--     -- worldBossToggle = CreateToggleCheckbox(config, 20, -125, "Show World Bosses", "showWorldBosses")
+
+--     local closeButton = CreateFrame("Button", nil, config, "UIPanelButtonTemplate")
+--     closeButton:SetWidth(80)
+--     closeButton:SetHeight(25)
+--     closeButton:SetPoint("BOTTOM", 0, 15)
+--     closeButton:SetText("Ok")
+--     closeButton:SetScript("OnClick", function()
+--         locationProperties:Hide()
+--     end)
+--     local cancelButton = CreateFrame("Button", nil, config, "UIPanelButtonTemplate")
+--     closeButton:SetWidth(80)
+--     closeButton:SetHeight(25)
+--     closeButton:SetPoint("BOTTOM", 0, 15)
+--     closeButton:SetText("Cancel")
+--     closeButton:SetScript("OnClick", function()
+--         locationProperties:Hide()
+--     end)
+--     -- Hide the config window by default
+--     config:Hide()
+-- end
 
 -- keeping zoneIDs for reference and debugging only
 kZoneNames = {GetMapZones(1)}
@@ -66,16 +180,6 @@ local firstLoad = true
 
 local markers = {}
 local debug = false
-
--- Prevent the error `Interface\FrameXML\MoneyFrame.lua:185: attempt to perform arithmetic on local `money' (a nil value)`
--- Reference: https://github.com/veechs/Bagshui/blob/c70823167ae2581da7a777c073291805297cb0a2/Components/Bagshui.BlizzFixes.lua#L6
---local oldMoneyFrame_UpdateMoney = MoneyFrame_UpdateMoney
---function MoneyFrame_UpdateMoney()
---    if this.moneyType == "STATIC" and this.staticMoney == nil then
---        this.staticMoney = 0
---    end
---    oldMoneyFrame_UpdateMoney()
---end
 
 local function CreateMapPin(parent, x, y, size, texture, tooltipText, tooltipInfo)
     if debug then
@@ -196,9 +300,9 @@ frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 frame:SetScript("OnEvent", function()
-    if event == "ADDON_LOADED" and arg1 == "ModernMapMarkers" then
+    if event == "ADDON_LOADED" and arg1 == "MoreMapMarkers" then
         -- Addon is loaded, create UI but don't initialize saved vars yet
-        CreateConfigUI()
+        CreateMapMarkerUI()
         if debug then
             print("Modern Map Markers: Addon Loaded, UI Created")
         end
@@ -226,15 +330,14 @@ frame:SetScript("OnEvent", function()
     end
 end)
 
--- Slash command handler
---SLASH_MMM1 = "/mmm"
---SlashCmdList["MMM"] = function()
---    if MMMConfigFrame and MMMConfigFrame:IsVisible() then
---        MMMConfigFrame:Hide()
---    else
---        MMMConfigFrame:Show()
---    end
---end
+-- SLASH_MMM1 = "/Moar"
+-- SlashCmdList["Moar"] = function()
+--     if MoarMarkerInfo and MoarMarkerInfo:IsVisible() then
+--         MoarMarkerInfo:Hide()
+--     else
+--         MoarMarkerInfo:Show()
+--     end
+-- end
 
 if debug then
     DEFAULT_CHAT_FRAME:AddMessage("Modern Map Markers: Initial Load Complete")
