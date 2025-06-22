@@ -302,10 +302,7 @@ frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:SetScript("OnEvent", function()
     if event == "ADDON_LOADED" and arg1 == "MoreMapMarkers" then
         -- Addon is loaded, create UI but don't initialize saved vars yet
-        CreateMapMarkerUI()
-        if debug then
-            print("Modern Map Markers: Addon Loaded, UI Created")
-        end
+        --eateMapMarkerUI()
 --    elseif event == "VARIABLES_LOADED" then
         -- This is when saved variables are actually available
 --        if not initialized then
