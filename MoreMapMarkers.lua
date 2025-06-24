@@ -256,9 +256,11 @@ local function CreateMapMarkerUI()
     MoreMapMarkerFrame:SetHeight(48)
     local pos = MoreMapMarkersDB.framePosition or 
     {
-        x = 0, y = 0
+        x = 0, y = 0,             
+        point = "CENTER",
+        relativePoint = "CENTER"
     }
-    MoreMapMarkerFrame:SetPoint("CENTER", UIParent, "CENTER", pos.x, pos.y)
+    MoreMapMarkerFrame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
     MoreMapMarkerFrame:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
         --edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
