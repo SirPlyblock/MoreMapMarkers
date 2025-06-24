@@ -1,7 +1,8 @@
 ## Interface: 11200
 ## Title: |cff7fff7fM|cffffffffore |cff7fff7fM|cffffffffap |cff7fff7fM|cffffffffarkers
+## SavedVariables: MoreMapMarkersDB
 ## Author: Built based off of ModernMapMarkers by tilr & Heallios
 ## Notes: Shows Mailboxes, reagent vendors and flight masters on the world map
-## Version: 0.2
+## Version: 0.5
 
 MoreMapMarkers.lua
