@@ -1,5 +1,6 @@
 -- Marker data: { continent, zoneID, x, y, name, type, info, Atlas ID }
 local playerfaction = ""
+local hidepointsofinterest = false
 local puntas = {
     -- Kalimdor Mailboxes
     {1, 26, 0.622, 0.392, "Mailbox", "mail", "", nil}, -- Ratchet
@@ -140,7 +141,9 @@ local function UpdateMarkers()
         pin = nil
     end
     markers = {} -- Clear the markers table
-
+    if hidepointsofinterest then
+        return
+    end
     local worldMap = WorldMapDetailFrame
     local mapWidth, mapHeight = worldMap:GetWidth(), worldMap:GetHeight()
     
@@ -319,7 +322,7 @@ frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:SetScript("OnEvent", function()
     if event == "ADDON_LOADED" and arg1 == "MoreMapMarkers" then
         
-        DEFAULT_CHAT_FRAME:AddMessage("More Map Markers loaded")
+        DEFAULT_CHAT_FRAME:AddMessage("More Map Markers loaded, type /moremm or /moremapmarkers for info.")
     elseif event == "VARIABLES_LOADED" then
         -- This is when saved variables are actually available
         CreateMapMarkerUI()
@@ -329,6 +332,7 @@ frame:SetScript("OnEvent", function()
             else
                 MoreMapMarkerFrame:Hide()
             end
+            hidepointsofinterest = MoreMapMarkersDB.HidePOIs or false
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- Ensure everything is set up when entering world
@@ -336,6 +340,7 @@ frame:SetScript("OnEvent", function()
             initialized = true
             playerfaction = UnitFactionGroup("player")
         end
+
         UpdateMarkers()
     elseif event == "WORLD_MAP_UPDATE" then
         if initialized then
@@ -345,10 +350,10 @@ frame:SetScript("OnEvent", function()
 end)
 
 local function HandleMoreMapMarkersSlashCommand(msg)
-    if msg == "on" or msg == "show" then
+    if msg == "show" then
         MoreMapMarkerFrame:Show()
         MoreMapMarkersDB.FrameVisible = true
-    elseif msg == "off" or msg == "hide" then
+    elseif msg == "hide" then
         MoreMapMarkerFrame:Hide()
         MoreMapMarkersDB.FrameVisible = false
     elseif msg == "reset" then
@@ -357,6 +362,20 @@ local function HandleMoreMapMarkersSlashCommand(msg)
         MoreMapMarkerFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
         MoreMapMarkerFrame:Show()
         DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Position reset")
+    elseif msg == "on" then
+        MoreMapMarkersDB.HidePOIs = false
+        hidepointsofinterest = false
+        UpdateMarkers()
+    elseif msg == "off" then
+        MoreMapMarkersDB.HidePOIs = true
+        hidepointsofinterest = true
+        UpdateMarkers()
+    elseif msg == "toggle" then
+        if hidepointsofinterest then
+            HandleMoreMapMarkersSlashCommand("on")
+        else
+            HandleMoreMapMarkersSlashCommand("off")
+        end
     elseif msg == "f" or msg == "flight" then
         GenerateFlightMasterInfo()
     elseif msg == "m" or msg == "mail" then
@@ -365,8 +384,11 @@ local function HandleMoreMapMarkersSlashCommand(msg)
         GenerateReagentVendorInfo()
     else
         DEFAULT_CHAT_FRAME:AddMessage("/moremm [option] or /moremapmarkers [option]")
-        DEFAULT_CHAT_FRAME:AddMessage("[on] or [show] - shows the frame")
-        DEFAULT_CHAT_FRAME:AddMessage("[off] or [hide] - hides the frame")
+        DEFAULT_CHAT_FRAME:AddMessage("[show] - shows the frame")
+        DEFAULT_CHAT_FRAME:AddMessage("[hide] - hides the frame")
+        DEFAULT_CHAT_FRAME:AddMessage("[toggle] - hides/shows map markers")
+        DEFAULT_CHAT_FRAME:AddMessage("[on] - shows map markers")
+        DEFAULT_CHAT_FRAME:AddMessage("[off] - hides map markers")
         DEFAULT_CHAT_FRAME:AddMessage("[reset] - resets frame position to center screen")
         DEFAULT_CHAT_FRAME:AddMessage("[f] or [flight] - Generates flight master info for targetted unit at your location")
         DEFAULT_CHAT_FRAME:AddMessage("[m] or [mail] - Generates mailbox info at your location")
