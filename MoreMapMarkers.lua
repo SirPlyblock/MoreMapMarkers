@@ -207,7 +207,7 @@ local function GetPlayerWorldLocation()
     return c,z,x,y  
 end
 
-local function flightButtonClicked()
+local function GenerateFlightMasterInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     local t = UnitName("target") or ""
     InsertInMarkerTable(c, z, x, y, "Flight Master" ,"flight", t, playerfaction)
@@ -216,7 +216,7 @@ local function flightButtonClicked()
     DEFAULT_CHAT_FRAME:AddMessage("Flight point added")
 end
 
-local function mailButtonClicked()
+local function GenerateMailboxInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     InsertInMarkerTable(c, z, x, y, "Mailbox", "mail", "", nil)
     UpdateMarkers()
@@ -224,7 +224,7 @@ local function mailButtonClicked()
     DEFAULT_CHAT_FRAME:AddMessage("Mailbox Added")
 end
 
-local function reagentButtonClicked()
+local function GenerateReagentVendorInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     local t = UnitName("target") or ""
     InsertInMarkerTable(c, z, x, y, "Reagent Vendor", "reag", t, playerfaction)
@@ -293,9 +293,9 @@ local function CreateMapMarkerUI()
     end)
 
     -- Add create POI-buttons
-    local flightButton = CreateButtonFrame(MoreMapMarkerFrame, "BOTTOMLEFT", 1, 1, 32, "Interface\\Addons\\MoreMapMarkers\\Images\\taxi.tga", flightButtonClicked)
-    local mailButton = CreateButtonFrame(MoreMapMarkerFrame, "BOTTOMLEFT", 34, 1, 32, "Interface\\Addons\\MoreMapMarkers\\Images\\mail.tga", mailButtonClicked)
-    local vendorButton = CreateButtonFrame(MoreMapMarkerFrame, "BOTTOMLEFT", 67, 1, 32, "Interface\\Addons\\MoreMapMarkers\\Images\\icon_vendor.tga", reagentButtonClicked)
+    local flightButton = CreateButtonFrame(MoreMapMarkerFrame, "BOTTOMLEFT", 1, 1, 32, "Interface\\Addons\\MoreMapMarkers\\Images\\taxi.tga", GenerateFlightMasterInfo)
+    local mailButton = CreateButtonFrame(MoreMapMarkerFrame, "BOTTOMLEFT", 34, 1, 32, "Interface\\Addons\\MoreMapMarkers\\Images\\mail.tga", GenerateMailboxInfo)
+    local vendorButton = CreateButtonFrame(MoreMapMarkerFrame, "BOTTOMLEFT", 67, 1, 32, "Interface\\Addons\\MoreMapMarkers\\Images\\icon_vendor.tga", GenerateReagentVendorInfo)
     --local closeButton = CreateButtonFrame(MoreMapMarkerFrame,"TOPRIGHT", 1, 1, 10, "Interface\\Addons\\MoreMapMarkers\\Images\\close.tga", function() MoreMapMarkerFrame:Hide() end)
     MoreMapMarkerFrame:Hide()
 end
@@ -357,11 +357,20 @@ local function HandleMoreMapMarkersSlashCommand(msg)
         MoreMapMarkerFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
         MoreMapMarkerFrame:Show()
         DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Position reset")
+    elseif msg == "f" or msg == "flight" then
+        GenerateFlightMasterInfo()
+    elseif msg == "m" or msg == "mail" then
+        GenerateMailboxInfo()
+    elseif msg == "r" or msg == "reagents" then
+        GenerateReagentVendorInfo()
     else
         DEFAULT_CHAT_FRAME:AddMessage("/moremm [option] or /moremapmarkers [option]")
         DEFAULT_CHAT_FRAME:AddMessage("[on] or [show] - shows the frame")
         DEFAULT_CHAT_FRAME:AddMessage("[off] or [hide] - hides the frame")
         DEFAULT_CHAT_FRAME:AddMessage("[reset] - resets frame position to center screen")
+        DEFAULT_CHAT_FRAME:AddMessage("[f] or [flight] - Generates flight master info for targetted unit at your location")
+        DEFAULT_CHAT_FRAME:AddMessage("[m] or [mail] - Generates mailbox info at your location")
+        DEFAULT_CHAT_FRAME:AddMessage("[r] or [reagents] - Generates reagent vendor info for targetted unit at your location")
     end
 end
 
