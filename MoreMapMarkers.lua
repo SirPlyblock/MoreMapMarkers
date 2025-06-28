@@ -1,4 +1,4 @@
--- Marker data: { continent, zoneID, x, y, name, type, npcname, faction }
+-- Marker data: { continent, zoneID, x, y, name, type, npcname, faction } --
 local CURRENT_VERSION = 2.1  -- Add this line to define the current version
 local playerfaction = ""
 local hidepointsofinterest = false
