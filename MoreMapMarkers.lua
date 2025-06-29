@@ -436,34 +436,52 @@ local function SetMarkerTypeVisibility(tp, vis)
     if tp == "m" or tp == "mail" then
         MoreMapMarkersDB.ShowMailboxes = vis
         showmail = vis
+        DEFAULT_CHAT_FRAME:AddMessage("ShowMailboxes set to " .. tostring(vis))
     elseif tp == "f" or tp == "flight" then
         MoreMapMarkersDB.ShowFlightPoints = vis
         showflight = vis
+        DEFAULT_CHAT_FRAME:AddMessage("ShowFlightPoints set to " .. tostring(vis))
     elseif tp == "r" or tp == "reagents" then
         MoreMapMarkersDB.ShowReagentVendors = vis
         showreagent = vis
+        DEFAULT_CHAT_FRAME:AddMessage("ShowReagentVendors set to " .. tostring(vis))
     else
         DEFAULT_CHAT_FRAME:AddMessage("Unknown marker type.")
     end
 end
 
+local function strsplit(text)
+    local result = {}
+    for word in string.gmatch(text, "[^%s]+") do
+        table.insert(result, word)
+    end
+    return result
+end
+
 local function HandleMoreMapMarkersSlashCommand(msg)
-    local param1, param2, param3 = strsplit(" ", msg)
+    local params = strsplit(msg)
+    local param1 = params[1]
+    local param2 = params[2]
+    if debug then
+        DEFAULT_CHAT_FRAME:AddMessage(param1 or nil)
+        DEFAULT_CHAT_FRAME:AddMessage(param2 or nil)
+    end
     if param1 == "show" then
         if param2 then
             SetMarkerTypeVisibility(param2, true)
+            
         else
             MoreMapMarkerFrame:Show()
             MoreMapMarkersDB.FrameVisible = true
         end
-    elseif msg == "hide" then
+    elseif param1 == "hide" then
         if param2 then
             SetMarkerTypeVisibility(param2, false)
         else
             MoreMapMarkerFrame:Hide()
             MoreMapMarkersDB.FrameVisible = false
         end
-    elseif msg == "reset" then
+    elseif param1 == "reset" then
         MoreMapMarkersDB.framePosition = nil
         MoreMapMarkerFrame:ClearAllPoints()
         MoreMapMarkerFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
@@ -473,25 +491,25 @@ local function HandleMoreMapMarkersSlashCommand(msg)
         SetMarkerTypeVisibility("f", true)
         SetMarkerTypeVisibility("r", true)
         DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Settings reset to deafult.")
-    elseif msg == "on" then
+    elseif param1 == "on" then
         MoreMapMarkersDB.HidePOIs = false
         hidepointsofinterest = false
         UpdateMarkers()
-    elseif msg == "off" then
+    elseif param1 == "off" then
         MoreMapMarkersDB.HidePOIs = true
         hidepointsofinterest = true
         UpdateMarkers()
-    elseif msg == "toggle" then
+    elseif param1 == "toggle" then
         if hidepointsofinterest then
             HandleMoreMapMarkersSlashCommand("on")
         else
             HandleMoreMapMarkersSlashCommand("off")
         end
-    elseif msg == "f" or msg == "flight" then
+    elseif param1 == "f" or param1 == "flight" then
         GenerateFlightMasterInfo()
-    elseif msg == "m" or msg == "mail" then
+    elseif param1 == "m" or param1 == "mail" then
         GenerateMailboxInfo()
-    elseif msg == "r" or msg == "reagents" then
+    elseif param1 == "r" or param1 == "reagents" then
         GenerateReagentVendorInfo()
     else
         DEFAULT_CHAT_FRAME:AddMessage("/moremm [option] or /moremapmarkers [option]")
