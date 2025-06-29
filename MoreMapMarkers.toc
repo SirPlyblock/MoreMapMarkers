@@ -3,6 +3,6 @@
 ## SavedVariables: MoreMapMarkersDB
 ## Author: Built based off of ModernMapMarkers by tilr & Heallios
 ## Notes: Shows Mailboxes, reagent vendors and flight masters on the world map
-## Version: 0.6
+## Version: 0.7
 
 MoreMapMarkers.lua
