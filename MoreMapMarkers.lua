@@ -1,5 +1,5 @@
 -- Marker data: { continent, zoneID, x, y, name, type, npcname, faction } --
-local CURRENT_VERSION = 2.2  -- Add this line to define the current version
+local CURRENT_VERSION = 2.2
 local playerfaction = ""
 local hidepointsofinterest = false
 local showmail = true
@@ -138,11 +138,11 @@ function IsMarkerPositionFree(c, z, x, y, markers)
             local dx = marker[3] - x  -- marker[3] = existing x
             local dy = marker[4] - y  -- marker[4] = existing y
             if (dx * dx + dy * dy) < 0.01 then  -- 0.1² = 0.01
-                return false  -- Conflict: Too close to another marker of same type
+                return false 
             end
         end
     end
-    return true  -- Safe to add
+    return true
 end
 
 local function CreateMapPin(parent, x, y, size, texture, tooltipText, tooltipInfo)
@@ -184,12 +184,12 @@ local function UpdateMarkers()
     local currentContinent = GetCurrentMapContinent()
     local currentZone = GetCurrentMapZone()
     
-    -- Because these maps also have co-ordinates, we need to remove any drawn pins otherwise they will overlay these maps
-    -- Destroy any entries in markers for pins relating to other zone / continent maps
+    -- Destroy pins
     for _, pin in pairs(markers) do
         pin:Hide()
         pin = nil
     end
+
     markers = {} -- Clear the markers table
     if hidepointsofinterest then
         return
@@ -228,7 +228,6 @@ local function UpdateMarkers()
         DEFAULT_CHAT_FRAME:AddMessage("Reagentvendors off")
     end
 
-    --local markerCollections = { points, MoreMapMarkersDB.AddedPoints or {} }
     for _, collection in ipairs(activeCollections) do
         for i, data in pairs(collection) do
             local cont, zoneID, x, y, label, kind, info, faction = localUnpack(data)   
@@ -345,7 +344,6 @@ local function CreateMapMarkerUI()
     MoreMapMarkerFrame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
     MoreMapMarkerFrame:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        --edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
         tile = true,
         tileSize = 32,
         edgeSize = 0,
@@ -513,8 +511,8 @@ local function HandleMoreMapMarkersSlashCommand(msg)
         GenerateReagentVendorInfo()
     else
         DEFAULT_CHAT_FRAME:AddMessage("/moremm [option] or /moremapmarkers [option]")
-        DEFAULT_CHAT_FRAME:AddMessage("[show] {type} - shows the frame or the marker type supplied")
-        DEFAULT_CHAT_FRAME:AddMessage("[hide] {type} - hides the frame or the marker type supplied")
+        DEFAULT_CHAT_FRAME:AddMessage("[show] {type} - shows the frame or the marker type if supplied")
+        DEFAULT_CHAT_FRAME:AddMessage("[hide] {type} - hides the frame or the marker type if supplied")
         DEFAULT_CHAT_FRAME:AddMessage("[toggle] - hides/shows map markers")
         DEFAULT_CHAT_FRAME:AddMessage("[on] - shows map markers")
         DEFAULT_CHAT_FRAME:AddMessage("[off] - hides map markers")
