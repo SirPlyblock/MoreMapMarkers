@@ -114,9 +114,6 @@ local points = {
     }
 }
 
-Alliance
-Alliance
-
 MoreMapMarkersDB = MoreMapMarkersDB or
 { 
     AddedMailboxes = {},
