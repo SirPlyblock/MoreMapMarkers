@@ -9,7 +9,7 @@ local showreagent = true
 local MAIL_TEXTURE = "Interface\\Addons\\MoreMapMarkers\\Images\\mail.tga"
 local MAIL_SIZE = 14
 local REAG_TEXTURE = "Interface\\Addons\\MoreMapMarkers\\Images\\icon_vendor.tga"
-local REAG_SIZE = 26
+local REAG_SIZE = 16
 local TAXI_TEXTURE = "Interface\\Addons\\MoreMapMarkers\\Images\\taxi.tga"
 local TAXI_SIZE = 28
 
