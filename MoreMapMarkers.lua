@@ -7,10 +7,13 @@ local showflight = true
 local showreagent = true
 
 local MAIL_TEXTURE = "Interface\\Addons\\MoreMapMarkers\\Images\\mail.tga"
-local MAIL_SIZE = 18
+local MAIL_SIZE = 14
 local REAG_TEXTURE = "Interface\\Addons\\MoreMapMarkers\\Images\\icon_vendor.tga"
-local REAG_SIZE = 20
+local REAG_SIZE = 26
 local TAXI_TEXTURE = "Interface\\Addons\\MoreMapMarkers\\Images\\taxi.tga"
+local TAXI_SIZE = 28
+
+local debug = false
 
 local points = {
     mail = {
@@ -84,7 +87,6 @@ local points = {
     { 1, 10, 0.428, 0.725, "Flight Master", "flight", "Razzit", nil },
     { 1, 23, 0.516, 0.254, "Flight Master", "flight", "Bulkrek Ragefist", "Horde" },
     { 1, 23, 0.51, 0.294, "Flight Master", "flight", "Bera Stonehammer", "Alliance" },
-    { 2, 24, 0.434, 0.415, "Flight Master", "flight", "Nadia Vernon", "Horde" },
     { 2, 33, 0.633, 0.486, "Flight Master", "flight", "Michael Garrett", "Horde" },
     { 2, 31, 0.041, 0.607, "Flight Master", "flight", "Mary Willowfield", "Horde" },
     { 2, 26, 0.325, 0.294, "Flight Master", "flight", "Thysta", "Horde" },
@@ -197,63 +199,78 @@ local function UpdateMarkers()
 
     local activeCollections = {}
     if showmail then
-        table.insert(activeCollections, markerCollections.mail)
+        table.insert(activeCollections, points.mail)
         table.insert(activeCollections, MoreMapMarkersDB.AddedMailboxes or {})
+        if debug then
+            DEFAULT_CHAT_FRAME:AddMessage("Added mailboxes to visible poi's")
+        end
+    elseif debug then
+        DEFAULT_CHAT_FRAME:AddMessage("Mailboxes off")
     end
     
     if showflight then
-        table.insert(activeCollections, markerCollections.flight)
+        table.insert(activeCollections, points.flight)
         table.insert(activeCollections, MoreMapMarkersDB.AddedFlightPoints or {})
+        if debug then
+            DEFAULT_CHAT_FRAME:AddMessage("Added flightpoints to visible poi's")
+        end
+    elseif debug then
+        DEFAULT_CHAT_FRAME:AddMessage("Flightpoints off")
     end
+
     if showreagent then
-        table.insert(activeCollections, markerCollections.reagents)
+        table.insert(activeCollections, points.reagents)
         table.insert(activeCollections, MoreMapMarkersDB.AddedReagentVendors or {})
+        if debug then
+            DEFAULT_CHAT_FRAME:AddMessage("Added reagentvendors to visible poi's")
+        end
+    elseif debug then
+        DEFAULT_CHAT_FRAME:AddMessage("Reagentvendors off")
     end
 
     --local markerCollections = { points, MoreMapMarkersDB.AddedPoints or {} }
     for _, collection in ipairs(activeCollections) do
         for i, data in pairs(collection) do
             local cont, zoneID, x, y, label, kind, info, faction = localUnpack(data)   
-                if currentZone == zoneID and currentContinent == cont and (playerfaction == faction or faction == nil) then
-                    local size
-                    local texture
-                    
-                    if kind == "mail" then
-                        texture = MAIL_TEXTURE
-                        size = MAIL_SIZE
-                    elseif kind == "reagents" then
-                        texture = REAG_TEXTURE
-                        size = REAG_SIZE
-                    else
-                        texture = TAXI_TEXTURE
-                        size = TAXI_SIZE
-                    end
-
-                    local px, py = x * mapWidth, y * mapHeight
-                    local pin = CreateMapPin(worldMap, px, py, size, texture, label, info)        
-                    markers[i] = pin
+            if currentZone == zoneID and currentContinent == cont and (playerfaction == faction or faction == nil) then
+                local size
+                local texture
+                
+                if kind == "mail" then
+                    texture = MAIL_TEXTURE
+                    size = MAIL_SIZE
+                elseif kind == "reagents" then
+                    texture = REAG_TEXTURE
+                    size = REAG_SIZE
+                else
+                    texture = TAXI_TEXTURE
+                    size = TAXI_SIZE
                 end
-            end
+
+                local px, py = x * mapWidth, y * mapHeight
+                local pin = CreateMapPin(worldMap, px, py, size, texture, label, info)        
+                markers[i] = pin
+            end --zone check
         end
     end
 end
 
 
+
 local function InsertInMarkerTable(c, z, x, y, description, ttype, targetname, faction)
     local affectedtable
     local pointstable
-    if ttype = "mail" then
+    if ttype == "mail" then
         affectedtable = MoreMapMarkersDB.AddedMailboxes
         pointstable = points.mail
-    elseif ttype = "flight" then
+    elseif ttype == "flight" then
         affectedtable = MoreMapMarkersDB.AddedFlightPoints
         pointstable = points.flight
     else
         affectedtable = MoreMapMarkersDB.AddedReagentVendors
         pointstable = points.reagents
     end
-    assert(type(c) == "number", "Continent must be a number (1 or 2)")
-    assert(x >= 0 and x <= 1 and y >= 0 and y <= 1, "Coordinates must be 0-1")
+
     if IsMarkerPositionFree(c, z, x, y, pointstable) and IsMarkerPositionFree(c, z, x, y, affectedtable) then
         table.insert(affectedtable, 
         {
