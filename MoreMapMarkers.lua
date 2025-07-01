@@ -132,6 +132,9 @@ local function localUnpack(data)
 end
 
 function IsMarkerPositionFree(c, z, x, y, markers)
+    if not markers then
+        return true
+    end 
     for _, marker in ipairs(markers) do
         -- Only check markers of the same type
         if marker[1] == c and marker[2] == z then
@@ -399,7 +402,9 @@ frame:SetScript("OnEvent", function()
         MoreMapMarkersDB = MoreMapMarkersDB or {}
         MoreMapMarkersDB.AddedPoints = nil
         MoreMapMarkersDB.version = MoreMapMarkersDB.version or 1
-        
+        MoreMapMarkersDB.AddedFlightPoints = MoreMapMarkersDB.AddedFlightPoints or {}
+        MoreMapMarkersDB.AddedMailboxes = MoreMapMarkersDB.AddedMailboxes or {}
+        MoreMapMarkersDB.AddedReagentVendors = MoreMapMarkersDB.AddedReagentVendors or {}
         if MoreMapMarkersDB.version < CURRENT_VERSION then
             MoreMapMarkersDB.version = CURRENT_VERSION
             DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Upgraded database to v"..CURRENT_VERSION)
@@ -425,6 +430,9 @@ frame:SetScript("OnEvent", function()
         end
     elseif event == "WORLD_MAP_UPDATE" then
         if initialized then
+            if debug then
+                DEFAULT_CHAT_FRAME:AddMessage("WORLD_MAP_UPDATE")
+            end
             UpdateMarkers()
         end
     end
