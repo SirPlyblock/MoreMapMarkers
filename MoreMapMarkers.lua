@@ -66,6 +66,8 @@ local points = {
 	{ 1, 7, 0.417, 0.420, "Mailbox", "mail", "", },
 	{ 1, 2, 0.363, 0.502, "Mailbox", "mail", "" },
     { 2, 4, 0.0385, 0.473, "Mailbox", "mail", "" },
+    { 1, 22, 0.832, 0.615, "Mailbox", "mail", "" },
+	{ 2, 9, 0.238, 0.288, "Mailbox", "mail", ""	},
     },
     flight = {
 	{ 1, 25, 0.584, 0.940, "Flight Master", "flight", "Vesprystus", "Alliance" },
@@ -105,6 +107,9 @@ local points = {
     { 2, 19, 0.339, 0.509, "Flight Master", "flight", "Thorgrum Borrelson", "Alliance" },   
     { 2, 36, 0.095, 0.597, "Flight Master", "flight", "Shellei Brondir", "Alliance" },
     { 1, 10, 0.675, 0.514, "Flight Master", "flight", "Baldruc", "Alliance" },
+    { 1, 22, 0.835,	0.626, "Flight Master",	"flight", "Orrik Thunderbeard",	"Alliance" },
+	{ 2, 35, 0.565,	0.526, "Flight Master", "flight", "Thor", "Alliance" },
+	{ 2, 9,	0.270, 0.357, "Flight Master", "flight", "Nelly Cogwheel", "Alliance" },
     },
     reagents = {
     { 2, 25, 0.631, 0.749, "Reagent Vendor", "reagents", "Kyra Boucher", "Alliance" },
@@ -525,7 +530,12 @@ local function HandleMoreMapMarkersSlashCommand(msg)
         SetMarkerTypeVisibility("m", true)
         SetMarkerTypeVisibility("f", true)
         SetMarkerTypeVisibility("r", true)
-        DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Settings reset to deafult.")
+        DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Settings reset to default.")
+    elseif param1 == "clear" then
+        MoreMapMarkersDB.AddedFlightPoints = {}
+        MoreMapMarkersDB.AddedMailboxes = {}
+        MoreMapMarkersDB.AddedReagentVendors = {}
+        DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: User pin data cleared!")
     elseif param1 == "on" then
         MoreMapMarkersDB.HidePOIs = false
         hidepointsofinterest = false
