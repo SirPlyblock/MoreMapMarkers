@@ -125,7 +125,7 @@ MoreMapMarkersDB = MoreMapMarkersDB or
 }
 
 local firstLoad = true
-local markers = {}
+local mapmarkers = {}
 
 local function localUnpack(data)
     return data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]
@@ -173,7 +173,30 @@ local function CreateMapPin(parent, x, y, size, texture, tooltipText, tooltipInf
     return pin
 end
 
-local function UpdateMarkers()
+--Proper destruction of map markers
+local function SafeDestroyPin(pin)
+    if not pin then return end
+    
+    -- Clear scripts
+    pin:SetScript("OnEnter", nil)
+    pin:SetScript("OnLeave", nil)
+    
+    -- Remove texture
+    if pin.texture then
+        pin.texture:SetTexture(nil)
+        pin.texture = nil
+    end
+    
+    -- Remove from parent and clear anchors
+    pin:ClearAllPoints()
+    pin:SetParent(nil)
+    
+    -- Hide last (some addons check :IsShown())
+    pin:Hide()
+end
+
+
+local function UpdateMoreMapMarkers()
     if firstLoad == true then
         firstLoad = false
         return
@@ -188,13 +211,16 @@ local function UpdateMarkers()
     local currentZone = GetCurrentMapZone()
     
     -- Destroy pins
-    for _, pin in pairs(markers) do
-        pin:Hide()
-        pin = nil
+    for i, pin in pairs(mapmarkers) do
+        SafeDestroyPin(pin)
+        mapmarkers[i] = nil  -- Remove from table
     end
 
-    markers = {} -- Clear the markers table
+    mapmarkers = {} -- Clear the markers table
     if hidepointsofinterest then
+        if debug then
+            DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: POI's hidded, no action")
+        end
         return
     end
     local worldMap = WorldMapDetailFrame
@@ -203,9 +229,11 @@ local function UpdateMarkers()
     local activeCollections = {}
     if showmail then
         table.insert(activeCollections, points.mail)
-        table.insert(activeCollections, MoreMapMarkersDB.AddedMailboxes or {})
-        if debug then
-            DEFAULT_CHAT_FRAME:AddMessage("Added mailboxes to visible poi's")
+        if MoreMapMarkersDB.AddedMailboxes then
+            table.insert(activeCollections, MoreMapMarkersDB.AddedMailboxes)
+            if debug then
+                DEFAULT_CHAT_FRAME:AddMessage("Added mailboxes to visible poi's")
+            end
         end
     elseif debug then
         DEFAULT_CHAT_FRAME:AddMessage("Mailboxes off")
@@ -213,9 +241,11 @@ local function UpdateMarkers()
     
     if showflight then
         table.insert(activeCollections, points.flight)
-        table.insert(activeCollections, MoreMapMarkersDB.AddedFlightPoints or {})
-        if debug then
-            DEFAULT_CHAT_FRAME:AddMessage("Added flightpoints to visible poi's")
+        if MoreMapMarkersDB.AddedFlightPoints then
+            table.insert(activeCollections, MoreMapMarkersDB.AddedFlightPoints)
+            if debug then
+                DEFAULT_CHAT_FRAME:AddMessage("Added flightpoints to visible poi's")
+            end
         end
     elseif debug then
         DEFAULT_CHAT_FRAME:AddMessage("Flightpoints off")
@@ -223,9 +253,11 @@ local function UpdateMarkers()
 
     if showreagent then
         table.insert(activeCollections, points.reagents)
-        table.insert(activeCollections, MoreMapMarkersDB.AddedReagentVendors or {})
-        if debug then
-            DEFAULT_CHAT_FRAME:AddMessage("Added reagentvendors to visible poi's")
+        if MoreMapMarkersDB.AddedReagentVendors then
+            table.insert(activeCollections, MoreMapMarkersDB.AddedReagentVendors or {})
+            if debug then
+                DEFAULT_CHAT_FRAME:AddMessage("Added reagentvendors to visible poi's")
+            end
         end
     elseif debug then
         DEFAULT_CHAT_FRAME:AddMessage("Reagentvendors off")
@@ -251,7 +283,7 @@ local function UpdateMarkers()
 
                 local px, py = x * mapWidth, y * mapHeight
                 local pin = CreateMapPin(worldMap, px, py, size, texture, label, info)        
-                markers[i] = pin
+                table.insert(mapmarkers, pin) --[i] = pin
             end --zone check
         end
     end
@@ -301,20 +333,20 @@ local function GenerateFlightMasterInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     local t = UnitName("target") or ""
     InsertInMarkerTable(c, z, x, y, "Flight Master" ,"flight", t, playerfaction)
-    UpdateMarkers()
+    UpdateMoreMapMarkers()
 end
 
 local function GenerateMailboxInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     InsertInMarkerTable(c, z, x, y, "Mailbox", "mail", "", nil)
-    UpdateMarkers()
+    UpdateMoreMapMarkers()
 end
 
 local function GenerateReagentVendorInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     local t = UnitName("target") or ""
     InsertInMarkerTable(c, z, x, y, "Reagent Vendor", "reagents", t, playerfaction)
-    UpdateMarkers()
+    UpdateMoreMapMarkers()
 end
 
 local function CreateButtonFrame(parentframe, anchor, xpos, ypos, siz, texture, delegate)
@@ -426,14 +458,11 @@ frame:SetScript("OnEvent", function()
         -- Ensure everything is set up when entering world
         playerfaction = UnitFactionGroup("player")
         if initialized then
-            UpdateMarkers()
+            UpdateMoreMapMarkers()
         end
     elseif event == "WORLD_MAP_UPDATE" then
         if initialized then
-            if debug then
-                DEFAULT_CHAT_FRAME:AddMessage("WORLD_MAP_UPDATE")
-            end
-            UpdateMarkers()
+            UpdateMoreMapMarkers()
         end
     end
 end)
@@ -500,11 +529,11 @@ local function HandleMoreMapMarkersSlashCommand(msg)
     elseif param1 == "on" then
         MoreMapMarkersDB.HidePOIs = false
         hidepointsofinterest = false
-        UpdateMarkers()
+        UpdateMoreMapMarkers()
     elseif param1 == "off" then
         MoreMapMarkersDB.HidePOIs = true
         hidepointsofinterest = true
-        UpdateMarkers()
+        UpdateMoreMapMarkers()
     elseif param1 == "toggle" then
         if hidepointsofinterest then
             HandleMoreMapMarkersSlashCommand("on")
