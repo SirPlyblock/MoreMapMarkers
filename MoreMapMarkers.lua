@@ -13,7 +13,10 @@ local REAG_SIZE = 16
 local TAXI_TEXTURE = "Interface\\Addons\\MoreMapMarkers\\Images\\taxi.tga"
 local TAXI_SIZE = 28
 
-local debug = false
+local debug = true
+local lastCurrentContinent, lastCurrentZone
+
+local MoreMapMarkerFrame
 
 local points = {
     mail = {
@@ -36,7 +39,7 @@ local points = {
             [10] = {
                 { 0.42, 0.731, "" },
                 { 0.660, 0.453, "" },
-            }
+            },
             [12] = {
                 { 0.749, 0.44, "" },
             },
@@ -400,8 +403,8 @@ local function IsMarkerPositionFree(c, z, x, y, markerTable)
     end
     
     for _, marker in ipairs(markerTable[c][z]) do
-        local dx = marker[1] - x  -- New x position (index 1)
-        local dy = marker[2] - y  -- New y position (index 2)
+        local dx = marker[1] - x 
+        local dy = marker[2] - y 
         if (dx * dx + dy * dy) < 0.01 then
             return false
         end
@@ -456,7 +459,7 @@ local function SafeDestroyPin(pin)
     pin:Hide()
 end
 
-local function IterateMarkerTable(kind, activeCollections)
+local function IterateMarkerTable(kind, activeCollections, worldMap, mapWidth, mapHeight)
     local label
     local size
     local texture
@@ -475,6 +478,9 @@ local function IterateMarkerTable(kind, activeCollections)
     end
     for _, collection in ipairs(activeCollections) do
         if collection then
+            if debug and type(collection) == "string" then
+                DEFAULT_CHAT_FRAME:AddMessage("Collection: " .. collection)
+            end
             for i, data in pairs(collection) do
                 local x, y, name, faction = localUnpack(data)   
                 if playerfaction == faction or not faction then
@@ -487,7 +493,7 @@ local function IterateMarkerTable(kind, activeCollections)
     end
 end
 
-local function UpdateMoreMapMarkers()
+local function UpdateMoreMapMarkers(currentContinent, currentZone)
     if firstLoad == true then
         firstLoad = false
         return
@@ -504,10 +510,8 @@ local function UpdateMoreMapMarkers()
         mapmarkers[i] = nil  -- Remove from table
     end
 
-    mapmarkers = {} -- Clear the markers table
 
-    local currentContinent = GetCurrentMapContinent()
-    local currentZone = GetCurrentMapZone()
+    mapmarkers = {} -- Clear the markers table
     if (not currentZone or currentZone == 0) or (not currentContinent or currentContinent == 0) then
         return
     end
@@ -518,6 +522,10 @@ local function UpdateMoreMapMarkers()
         end
         return
     end
+
+    if debug then
+        DEFAULT_CHAT_FRAME:AddMessage("Update map called with continent" .. tostring(currentContinent) .. " zone: " .. tostring(currentZone))
+    end
     local worldMap = WorldMapDetailFrame
     local mapWidth, mapHeight = worldMap:GetWidth(), worldMap:GetHeight()
 
@@ -525,13 +533,13 @@ local function UpdateMoreMapMarkers()
     local mailboxCollection = {}
     if showmail then
         table.insert(mailboxCollection, points.mail[currentContinent][currentZone] or {})
-        if MoreMapMarkersDB.AddedMailboxes[currentContinent] then
+        if MoreMapMarkersDB.AddedMailboxes[currentContinent] and MoreMapMarkersDB.AddedMailboxes[currentContinent][currentZone] then
             table.insert(mailboxCollection, MoreMapMarkersDB.AddedMailboxes[currentContinent][currentZone])
             if debug then
                 DEFAULT_CHAT_FRAME:AddMessage("Added mailboxes to visible poi's")
             end
         end
-        IterateMarkerTable("mail", mailboxCollection)
+        IterateMarkerTable("mail", mailboxCollection, worldMap, mapWidth, mapHeight)
     elseif debug then
         DEFAULT_CHAT_FRAME:AddMessage("Mailboxes off")
     end
@@ -539,13 +547,13 @@ local function UpdateMoreMapMarkers()
     local flightCollection = {}
     if showflight then
         table.insert(flightCollection, points.flight[currentContinent][currentZone] or {})
-        if MoreMapMarkersDB.AddedFlightPoints[currentContinent][currentZone] then
+        if MoreMapMarkersDB.AddedFlightPoints[currentContinent] and MoreMapMarkersDB.AddedFlightPoints[currentContinent][currentZone] then
             table.insert(flightCollection, MoreMapMarkersDB.AddedFlightPoints[currentContinent][currentZone])
             if debug then
                 DEFAULT_CHAT_FRAME:AddMessage("Added flightpoints to visible poi's")
             end
         end
-        IterateMarkerTable("flight", flightCollection)
+        IterateMarkerTable("flight", flightCollection, worldMap, mapWidth, mapHeight)
     elseif debug then
         DEFAULT_CHAT_FRAME:AddMessage("Flightpoints off")
     end
@@ -553,13 +561,13 @@ local function UpdateMoreMapMarkers()
     local reagentCollection = {}
     if showreagent then
         table.insert(reagentCollection, points.reagents[currentContinent][currentZone] or {})
-        if MoreMapMarkersDB.AddedReagentVendors[currentContinent][currentZone] then
+        if MoreMapMarkersDB.AddedReagentVendors[currentContinent] and MoreMapMarkersDB.AddedReagentVendors[currentContinent][currentZone] then
             table.insert(reagentCollection, MoreMapMarkersDB.AddedReagentVendors[currentContinent][currentZone])
             if debug then
                 DEFAULT_CHAT_FRAME:AddMessage("Added reagentvendors to visible poi's")
             end
         end
-        IterateMarkerTable("reagent", reagentCollection)
+        IterateMarkerTable("reagents", reagentCollection, worldMap, mapWidth, mapHeight)
     elseif debug then
         DEFAULT_CHAT_FRAME:AddMessage("Reagentvendors off")
     end
@@ -608,7 +616,7 @@ local function InsertInMarkerTable(c, z, x, y, ttype, targetname, faction)
         DEFAULT_CHAT_FRAME:AddMessage("Duplicate found! Marker not added.")
     end
     
-    UpdateMoreMapMarkers()
+    UpdateMoreMapMarkers(GetCurrentMapContinent(), GetCurrentMapZone())
 end
 
 local function GetPlayerWorldLocation()
@@ -621,20 +629,20 @@ local function GenerateFlightMasterInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     local t = UnitName("target") or ""
     InsertInMarkerTable(c, z, x, y, "Flight Master" ,"flight", t, playerfaction)
-    UpdateMoreMapMarkers()
+    UpdateMoreMapMarkers(c, z)
 end
 
 local function GenerateMailboxInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     InsertInMarkerTable(c, z, x, y, "Mailbox", "mail", "", nil)
-    UpdateMoreMapMarkers()
+    UpdateMoreMapMarkers(c, z)
 end
 
 local function GenerateReagentVendorInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     local t = UnitName("target") or ""
     InsertInMarkerTable(c, z, x, y, "Reagent Vendor", "reagents", t, playerfaction)
-    UpdateMoreMapMarkers()
+    UpdateMoreMapMarkers(c, z)
 end
 
 local function CreateButtonFrame(parentframe, anchor, xpos, ypos, siz, texture, delegate)
@@ -655,17 +663,17 @@ local function CreateButtonFrame(parentframe, anchor, xpos, ypos, siz, texture, 
 end
 
 local function CreateMapMarkerUI()
-    MoreMapMarkerFrame = CreateFrame("Frame", "MoreMapMarkerUI", UIParent)
-    MoreMapMarkerFrame:SetWidth(98)
-    MoreMapMarkerFrame:SetHeight(48)
+    local frejm = CreateFrame("Frame", "MoreMapMarkerUI", UIParent)
+    frejm:SetWidth(98)
+    frejm:SetHeight(48)
     local pos = MoreMapMarkersDB.framePosition or 
     {
         x = 0, y = 0,             
         point = "CENTER",
         relativePoint = "CENTER"
     }
-    MoreMapMarkerFrame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
-    MoreMapMarkerFrame:SetBackdrop({
+    frejm:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
+    frejm:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
         tile = true,
         tileSize = 32,
@@ -677,13 +685,13 @@ local function CreateMapMarkerUI()
             bottom = 0
         }
     })
-    MoreMapMarkerFrame:SetMovable(true)
-    MoreMapMarkerFrame:EnableMouse(true)
-    MoreMapMarkerFrame:RegisterForDrag("LeftButton")
-    MoreMapMarkerFrame:SetScript("OnDragStart", function()
+    frejm:SetMovable(true)
+    frejm:EnableMouse(true)
+    frejm:RegisterForDrag("LeftButton")
+    frejm:SetScript("OnDragStart", function()
         this:StartMoving()
     end)
-    MoreMapMarkerFrame:SetScript("OnDragStop", function()
+    frejm:SetScript("OnDragStop", function()
         this:StopMovingOrSizing()
         local point, _, relativePoint, x, y = this:GetPoint()
         MoreMapMarkersDB.framePosition = 
@@ -696,10 +704,11 @@ local function CreateMapMarkerUI()
     end)
 
     -- Add create POI-buttons
-    local flightButton = CreateButtonFrame(MoreMapMarkerFrame, "BOTTOMLEFT", 1, 1, 32, TAXI_TEXTURE, GenerateFlightMasterInfo)
-    local mailButton = CreateButtonFrame(MoreMapMarkerFrame, "BOTTOMLEFT", 34, 1, 32, MAIL_TEXTURE, GenerateMailboxInfo)
-    local vendorButton = CreateButtonFrame(MoreMapMarkerFrame, "BOTTOMLEFT", 67, 1, 32, REAG_TEXTURE, GenerateReagentVendorInfo)
-    MoreMapMarkerFrame:Hide()
+    local flightButton = CreateButtonFrame(frejm, "BOTTOMLEFT", 1, 1, 32, TAXI_TEXTURE, GenerateFlightMasterInfo)
+    local mailButton = CreateButtonFrame(frejm, "BOTTOMLEFT", 34, 1, 32, MAIL_TEXTURE, GenerateMailboxInfo)
+    local vendorButton = CreateButtonFrame(frejm, "BOTTOMLEFT", 67, 1, 32, REAG_TEXTURE, GenerateReagentVendorInfo)
+    frejm:Hide()
+    return frejm
 end
 
 -- Add a flag to track if we've already initialized
@@ -708,121 +717,54 @@ local initialized = false
 -- Event(s) handling frame
 local frame = CreateFrame("Frame")
 
+local lastCurrentZone = nil
+local lastCurrentContinent = nil
 frame:RegisterEvent("WORLD_MAP_UPDATE")
 frame:RegisterEvent("VARIABLES_LOADED")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-local eventHandlers = {
-    ["ADDON_LOADED"] = function(arg1)
-        if arg1 == "MoreMapMarkers" then
-            DEFAULT_CHAT_FRAME:AddMessage("|cff7fff7fM|cffffffffore |cff7fff7fM|cffffffffap |cff7fff7fM|cffffffffarkers loaded, type /moremm or /moremapmarkers for info.")
-        end
-    end,
-    
-    ["VARIABLES_LOADED"] = function()
+frame:SetScript("OnEvent", function()
+    if event == "ADDON_LOADED" and arg1 == "MoreMapMarkers" then
+        
+        DEFAULT_CHAT_FRAME:AddMessage("|cff7fff7fM|cffffffffore |cff7fff7fM|cffffffffap |cff7fff7fM|cffffffffarkers loaded, type /moremm or /moremapmarkers for info.")
+    elseif event == "VARIABLES_LOADED" then
+        -- This is when saved variables are actually available
         MoreMapMarkersDB = MoreMapMarkersDB or {}
         MoreMapMarkersDB.AddedPoints = nil
         MoreMapMarkersDB.version = MoreMapMarkersDB.version or 1
-
+        MoreMapMarkersDB.AddedFlightPoints = MoreMapMarkersDB.AddedFlightPoints or {}
+        MoreMapMarkersDB.AddedMailboxes = MoreMapMarkersDB.AddedMailboxes or {}
+        MoreMapMarkersDB.AddedReagentVendors = MoreMapMarkersDB.AddedReagentVendors or {}
         if MoreMapMarkersDB.version < CURRENT_VERSION then
             MoreMapMarkersDB.version = CURRENT_VERSION
-            MoreMapMarkersDB.AddedFlightPoints = {}
-            MoreMapMarkersDB.AddedMailboxes = {}
-            MoreMapMarkersDB.AddedReagentVendors = {}
             DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Upgraded database to v"..CURRENT_VERSION)
-        else
-            MoreMapMarkersDB.AddedFlightPoints = MoreMapMarkersDB.AddedFlightPoints or {}
-            MoreMapMarkersDB.AddedMailboxes = MoreMapMarkersDB.AddedMailboxes or {}
-            MoreMapMarkersDB.AddedReagentVendors = MoreMapMarkersDB.AddedReagentVendors or {}
         end
-        
         showmail = MoreMapMarkersDB.ShowMailboxes or true
         showflight = MoreMapMarkersDB.ShowFlightPoints or true
         showreagent = MoreMapMarkersDB.ShowReagentVendors or true
-        CreateMapMarkerUI()
+        MoreMapMarkerFrame = CreateMapMarkerUI()
         
         if MoreMapMarkersDB.FrameVisible then
             MoreMapMarkerFrame:Show()
         else
             MoreMapMarkerFrame:Hide()
         end
-        
         hidepointsofinterest = MoreMapMarkersDB.HidePOIs or false
         frame:UnregisterEvent("VARIABLES_LOADED")
         initialized = true
-    end,
-    
-    ["PLAYER_ENTERING_WORLD"] = function()
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        -- Ensure everything is set up when entering world
         playerfaction = UnitFactionGroup("player")
         if initialized then
-            UpdateMoreMapMarkers()
+            UpdateMoreMapMarkers(GetCurrentMapContinent(), GetCurrentMapZone())
         end
-    end,
-    
-    ["WORLD_MAP_UPDATE"] = function()
+    elseif event == "WORLD_MAP_UPDATE" then
         if initialized then
-            UpdateMoreMapMarkers()
-        end
-    end
-}
-
-frame:SetScript("OnEvent", function(self, event, ...)
-    local handler = eventHandlers[event]
-    if handler then
-        handler(...)
-    else
-        if debug then
-            DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Unhandled event - "..tostring(event))
+            UpdateMoreMapMarkers(GetCurrentMapContinent(), GetCurrentMapZone())
         end
     end
 end)
--- frame:SetScript("OnEvent", function()
---     if event == "ADDON_LOADED" and arg1 == "MoreMapMarkers" then
-        
---         DEFAULT_CHAT_FRAME:AddMessage("|cff7fff7fM|cffffffffore |cff7fff7fM|cffffffffap |cff7fff7fM|cffffffffarkers loaded, type /moremm or /moremapmarkers for info.")
---     elseif event == "VARIABLES_LOADED" then
---         -- This is when saved variables are actually available
---         MoreMapMarkersDB = MoreMapMarkersDB or {}
---         MoreMapMarkersDB.AddedPoints = nil
---         MoreMapMarkersDB.version = MoreMapMarkersDB.version or 1
-
---         if MoreMapMarkersDB.version < CURRENT_VERSION then --Clear incompatible table structure if ugrade needed
---             MoreMapMarkersDB.version = CURRENT_VERSION
---             MoreMapMarkersDB.AddedFlightPoints = {}
---             MoreMapMarkersDB.AddedMailboxes = {}
---             MoreMapMarkersDB.AddedReagentVendors = {}
---             DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Upgraded database to v"..CURRENT_VERSION)
---         else
---             MoreMapMarkersDB.AddedFlightPoints = MoreMapMarkersDB.AddedFlightPoints or {}
---             MoreMapMarkersDB.AddedMailboxes = MoreMapMarkersDB.AddedMailboxes or {}
---             MoreMapMarkersDB.AddedReagentVendors = MoreMapMarkersDB.AddedReagentVendors or {}
---         end
---         showmail = MoreMapMarkersDB.ShowMailboxes or true
---         showflight = MoreMapMarkersDB.ShowFlightPoints or true
---         showreagent = MoreMapMarkersDB.ShowReagentVendors or true
---         CreateMapMarkerUI()
-        
---         if MoreMapMarkersDB.FrameVisible then
---             MoreMapMarkerFrame:Show()
---         else
---             MoreMapMarkerFrame:Hide()
---         end
---         hidepointsofinterest = MoreMapMarkersDB.HidePOIs or false
---         frame:UnregisterEvent("VARIABLES_LOADED")
---         initialized = true
---     elseif event == "PLAYER_ENTERING_WORLD" then
---         -- Ensure everything is set up when entering world
---         playerfaction = UnitFactionGroup("player")
---         if initialized then
---             UpdateMoreMapMarkers()
---         end
---     elseif event == "WORLD_MAP_UPDATE" then
---         if initialized then
---             UpdateMoreMapMarkers()
---         end
---     end
--- end)
 
 local function SetMarkerTypeVisibility(tp, vis)
     if tp == "m" or tp == "mail" then
@@ -861,7 +803,6 @@ local function HandleMoreMapMarkersSlashCommand(msg)
     if param1 == "show" then
         if param2 then
             SetMarkerTypeVisibility(param2, true)
-            
         else
             MoreMapMarkerFrame:Show()
             MoreMapMarkersDB.FrameVisible = true
@@ -891,11 +832,11 @@ local function HandleMoreMapMarkersSlashCommand(msg)
     elseif param1 == "on" then
         MoreMapMarkersDB.HidePOIs = false
         hidepointsofinterest = false
-        UpdateMoreMapMarkers()
+        UpdateMoreMapMarkers(GetCurrentMapContinent(), GetCurrentMapZone())
     elseif param1 == "off" then
         MoreMapMarkersDB.HidePOIs = true
         hidepointsofinterest = true
-        UpdateMoreMapMarkers()
+        UpdateMoreMapMarkers(GetCurrentMapContinent(), GetCurrentMapZone())
     elseif param1 == "toggle" then
         if hidepointsofinterest then
             HandleMoreMapMarkersSlashCommand("on")
