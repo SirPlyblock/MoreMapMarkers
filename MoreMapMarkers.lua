@@ -1,5 +1,5 @@
 -- Marker data: { continent, zoneID, x, y, name, type, npcname, faction } --
-local CURRENT_VERSION = 2.2
+local CURRENT_VERSION = 3.0
 local playerfaction = ""
 local hidepointsofinterest = false
 local showmail = true
@@ -474,13 +474,15 @@ local function IterateMarkerTable(kind, activeCollections)
         size = TAXI_SIZE
     end
     for _, collection in ipairs(activeCollections) do
-        for i, data in pairs(collection) do
-            local x, y, name, faction = localUnpack(data)   
-            if (playerfaction == faction or not faction) then
-                local px, py = x * mapWidth, y * mapHeight
-                local pin = CreateMapPin(worldMap, px, py, size, texture, label, name)        
-                table.insert(mapmarkers, pin) --[i] = pin
-            end --zone check
+        if collection then
+            for i, data in pairs(collection) do
+                local x, y, name, faction = localUnpack(data)   
+                if playerfaction == faction or not faction then
+                    local px, py = x * mapWidth, y * mapHeight
+                    local pin = CreateMapPin(worldMap, px, py, size, texture, label, name)        
+                    table.insert(mapmarkers, pin) --[i] = pin
+                end --zone check
+            end
         end
     end
 end
@@ -496,9 +498,6 @@ local function UpdateMoreMapMarkers()
         return
     end
 
-    local currentContinent = GetCurrentMapContinent()
-    local currentZone = GetCurrentMapZone()
-    
     -- Destroy pins
     for i, pin in pairs(mapmarkers) do
         SafeDestroyPin(pin)
@@ -506,6 +505,13 @@ local function UpdateMoreMapMarkers()
     end
 
     mapmarkers = {} -- Clear the markers table
+
+    local currentContinent = GetCurrentMapContinent()
+    local currentZone = GetCurrentMapZone()
+    if (not currentZone or currentZone == 0) or (not currentContinent or currentContinent == 0) then
+        return
+    end
+
     if hidepointsofinterest then
         if debug then
             DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: POI's hidded, no action")
@@ -520,7 +526,7 @@ local function UpdateMoreMapMarkers()
     if showmail then
         table.insert(mailboxCollection, points.mail[currentContinent][currentZone] or {})
         if MoreMapMarkersDB.AddedMailboxes[currentContinent] then
-            table.insert(mailboxCollection, MoreMapMarkersDB.AddedMailboxes[currentContinent][currrentZone])
+            table.insert(mailboxCollection, MoreMapMarkersDB.AddedMailboxes[currentContinent][currentZone])
             if debug then
                 DEFAULT_CHAT_FRAME:AddMessage("Added mailboxes to visible poi's")
             end
@@ -546,7 +552,7 @@ local function UpdateMoreMapMarkers()
 
     local reagentCollection = {}
     if showreagent then
-        table.insert(reagentCollection, points.reagents[currentContinent][currentZone])
+        table.insert(reagentCollection, points.reagents[currentContinent][currentZone] or {})
         if MoreMapMarkersDB.AddedReagentVendors[currentContinent][currentZone] then
             table.insert(reagentCollection, MoreMapMarkersDB.AddedReagentVendors[currentContinent][currentZone])
             if debug then
@@ -707,22 +713,30 @@ frame:RegisterEvent("VARIABLES_LOADED")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-frame:SetScript("OnEvent", function()
-    if event == "ADDON_LOADED" and arg1 == "MoreMapMarkers" then
-        
-        DEFAULT_CHAT_FRAME:AddMessage("|cff7fff7fM|cffffffffore |cff7fff7fM|cffffffffap |cff7fff7fM|cffffffffarkers loaded, type /moremm or /moremapmarkers for info.")
-    elseif event == "VARIABLES_LOADED" then
-        -- This is when saved variables are actually available
+local eventHandlers = {
+    ["ADDON_LOADED"] = function(arg1)
+        if arg1 == "MoreMapMarkers" then
+            DEFAULT_CHAT_FRAME:AddMessage("|cff7fff7fM|cffffffffore |cff7fff7fM|cffffffffap |cff7fff7fM|cffffffffarkers loaded, type /moremm or /moremapmarkers for info.")
+        end
+    end,
+    
+    ["VARIABLES_LOADED"] = function()
         MoreMapMarkersDB = MoreMapMarkersDB or {}
         MoreMapMarkersDB.AddedPoints = nil
         MoreMapMarkersDB.version = MoreMapMarkersDB.version or 1
-        MoreMapMarkersDB.AddedFlightPoints = MoreMapMarkersDB.AddedFlightPoints or {}
-        MoreMapMarkersDB.AddedMailboxes = MoreMapMarkersDB.AddedMailboxes or {}
-        MoreMapMarkersDB.AddedReagentVendors = MoreMapMarkersDB.AddedReagentVendors or {}
+
         if MoreMapMarkersDB.version < CURRENT_VERSION then
             MoreMapMarkersDB.version = CURRENT_VERSION
+            MoreMapMarkersDB.AddedFlightPoints = {}
+            MoreMapMarkersDB.AddedMailboxes = {}
+            MoreMapMarkersDB.AddedReagentVendors = {}
             DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Upgraded database to v"..CURRENT_VERSION)
+        else
+            MoreMapMarkersDB.AddedFlightPoints = MoreMapMarkersDB.AddedFlightPoints or {}
+            MoreMapMarkersDB.AddedMailboxes = MoreMapMarkersDB.AddedMailboxes or {}
+            MoreMapMarkersDB.AddedReagentVendors = MoreMapMarkersDB.AddedReagentVendors or {}
         end
+        
         showmail = MoreMapMarkersDB.ShowMailboxes or true
         showflight = MoreMapMarkersDB.ShowFlightPoints or true
         showreagent = MoreMapMarkersDB.ShowReagentVendors or true
@@ -733,21 +747,82 @@ frame:SetScript("OnEvent", function()
         else
             MoreMapMarkerFrame:Hide()
         end
+        
         hidepointsofinterest = MoreMapMarkersDB.HidePOIs or false
         frame:UnregisterEvent("VARIABLES_LOADED")
         initialized = true
-    elseif event == "PLAYER_ENTERING_WORLD" then
-        -- Ensure everything is set up when entering world
+    end,
+    
+    ["PLAYER_ENTERING_WORLD"] = function()
         playerfaction = UnitFactionGroup("player")
         if initialized then
             UpdateMoreMapMarkers()
         end
-    elseif event == "WORLD_MAP_UPDATE" then
+    end,
+    
+    ["WORLD_MAP_UPDATE"] = function()
         if initialized then
             UpdateMoreMapMarkers()
         end
     end
+}
+
+frame:SetScript("OnEvent", function(self, event, ...)
+    local handler = eventHandlers[event]
+    if handler then
+        handler(...)
+    else
+        if debug then
+            DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Unhandled event - "..tostring(event))
+        end
+    end
 end)
+-- frame:SetScript("OnEvent", function()
+--     if event == "ADDON_LOADED" and arg1 == "MoreMapMarkers" then
+        
+--         DEFAULT_CHAT_FRAME:AddMessage("|cff7fff7fM|cffffffffore |cff7fff7fM|cffffffffap |cff7fff7fM|cffffffffarkers loaded, type /moremm or /moremapmarkers for info.")
+--     elseif event == "VARIABLES_LOADED" then
+--         -- This is when saved variables are actually available
+--         MoreMapMarkersDB = MoreMapMarkersDB or {}
+--         MoreMapMarkersDB.AddedPoints = nil
+--         MoreMapMarkersDB.version = MoreMapMarkersDB.version or 1
+
+--         if MoreMapMarkersDB.version < CURRENT_VERSION then --Clear incompatible table structure if ugrade needed
+--             MoreMapMarkersDB.version = CURRENT_VERSION
+--             MoreMapMarkersDB.AddedFlightPoints = {}
+--             MoreMapMarkersDB.AddedMailboxes = {}
+--             MoreMapMarkersDB.AddedReagentVendors = {}
+--             DEFAULT_CHAT_FRAME:AddMessage("MoreMapMarkers: Upgraded database to v"..CURRENT_VERSION)
+--         else
+--             MoreMapMarkersDB.AddedFlightPoints = MoreMapMarkersDB.AddedFlightPoints or {}
+--             MoreMapMarkersDB.AddedMailboxes = MoreMapMarkersDB.AddedMailboxes or {}
+--             MoreMapMarkersDB.AddedReagentVendors = MoreMapMarkersDB.AddedReagentVendors or {}
+--         end
+--         showmail = MoreMapMarkersDB.ShowMailboxes or true
+--         showflight = MoreMapMarkersDB.ShowFlightPoints or true
+--         showreagent = MoreMapMarkersDB.ShowReagentVendors or true
+--         CreateMapMarkerUI()
+        
+--         if MoreMapMarkersDB.FrameVisible then
+--             MoreMapMarkerFrame:Show()
+--         else
+--             MoreMapMarkerFrame:Hide()
+--         end
+--         hidepointsofinterest = MoreMapMarkersDB.HidePOIs or false
+--         frame:UnregisterEvent("VARIABLES_LOADED")
+--         initialized = true
+--     elseif event == "PLAYER_ENTERING_WORLD" then
+--         -- Ensure everything is set up when entering world
+--         playerfaction = UnitFactionGroup("player")
+--         if initialized then
+--             UpdateMoreMapMarkers()
+--         end
+--     elseif event == "WORLD_MAP_UPDATE" then
+--         if initialized then
+--             UpdateMoreMapMarkers()
+--         end
+--     end
+-- end)
 
 local function SetMarkerTypeVisibility(tp, vis)
     if tp == "m" or tp == "mail" then
