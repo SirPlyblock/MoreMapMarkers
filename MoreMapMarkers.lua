@@ -509,8 +509,7 @@ local function UpdateMoreMapMarkers(currentContinent, currentZone)
         SafeDestroyPin(pin)
         mapmarkers[i] = nil  -- Remove from table
     end
-
-
+    
     mapmarkers = {} -- Clear the markers table
     if (not currentZone or currentZone == 0) or (not currentContinent or currentContinent == 0) then
         return
@@ -524,7 +523,7 @@ local function UpdateMoreMapMarkers(currentContinent, currentZone)
     end
 
     if debug then
-        DEFAULT_CHAT_FRAME:AddMessage("Update map called with continent" .. tostring(currentContinent) .. " zone: " .. tostring(currentZone))
+        DEFAULT_CHAT_FRAME:AddMessage("Update map called with continent: " .. tostring(currentContinent) .. ", zone: " .. tostring(currentZone))
     end
     local worldMap = WorldMapDetailFrame
     local mapWidth, mapHeight = worldMap:GetWidth(), worldMap:GetHeight()
@@ -628,20 +627,20 @@ end
 local function GenerateFlightMasterInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     local t = UnitName("target") or ""
-    InsertInMarkerTable(c, z, x, y, "Flight Master" ,"flight", t, playerfaction)
+    InsertInMarkerTable(c, z, x, y, "flight", t, playerfaction)
     UpdateMoreMapMarkers(c, z)
 end
 
 local function GenerateMailboxInfo()
     local c,z,x,y = GetPlayerWorldLocation()
-    InsertInMarkerTable(c, z, x, y, "Mailbox", "mail", "", nil)
+    InsertInMarkerTable(c, z, x, y, "mail", "", nil)
     UpdateMoreMapMarkers(c, z)
 end
 
 local function GenerateReagentVendorInfo()
     local c,z,x,y = GetPlayerWorldLocation()
     local t = UnitName("target") or ""
-    InsertInMarkerTable(c, z, x, y, "Reagent Vendor", "reagents", t, playerfaction)
+    InsertInMarkerTable(c, z, x, y, "reagents", t, playerfaction)
     UpdateMoreMapMarkers(c, z)
 end
 
