@@ -64,6 +64,9 @@ local points = {
                 { 0.451, 0.587, "" },
                 { 0.506, 0.404, "" },
             },
+            [27] = {
+                { 0.458, 0.510, "" },
+			},
             [28] = {
                 { 0.453, 0.595, ""},
             },
@@ -175,6 +178,9 @@ local points = {
                 { 0.516, 0.254, "Bulkrek Ragefist", "Horde" },
                 { 0.51, 0.294, "Bera Stonehammer", "Alliance" },
             },
+            [24] = {
+				{ 0.394, 0.780, "Tezzin Skyfuse", "Horde" },
+			},
             [25] = {
                 { 0.584, 0.940, "Vesprystus", "Alliance" },
             },
@@ -183,6 +189,9 @@ local points = {
                 { 0.631, 0.372, "Bragok", nil },
                 { 0.444, 0.591, "Omusa Thunderhorn", "Horde" },
             },
+            [27] = {
+				{ 0.451, 0.491, "Nyse", "Horde"	},
+			},
             [28]= {
                 { 0.47, 0.498, "Tal", "Horde" },
             },
@@ -206,6 +215,9 @@ local points = {
             [16] = {
                 { 0.601, 0.186, "Zarise", "Horde" },
             },
+            [14] = {
+                { 0.571, 0.384, "Andana", "Horde" },
+			},
             [17] = {
                 { 0.555, 0.478, "Gryth Thurden", "Alliance" },  
             },
@@ -257,6 +269,9 @@ local points = {
             [20] = {
                 { 0.454, 0.565, "Horthus", "Horde" },
             },
+            [28] = {
+				{ 0.3693000972270966, 0.5702997446060181, "Chepi", "Horde" },
+			},
         },
         [2] = {
             [17] = {
@@ -405,7 +420,12 @@ local function IsMarkerPositionFree(c, z, x, y, markerTable)
     for _, marker in ipairs(markerTable[c][z]) do
         local dx = marker[1] - x 
         local dy = marker[2] - y 
-        if (dx * dx + dy * dy) < 0.01 then
+        if (dx * dx + dy * dy) < 0.0001 then
+            if debug then
+                DEFAULT_CHAT_FRAME:AddMessage(tostring(marker[1]) .. " " .. tostring(marker[2]))
+                DEFAULT_CHAT_FRAME:AddMessage(tostring(dx) .. " " .. tostring(dy))
+                DEFAULT_CHAT_FRAME:AddMessage(tostring(dx*dx+dy*dy))
+            end
             return false
         end
     end
@@ -572,18 +592,24 @@ local function UpdateMoreMapMarkers(currentContinent, currentZone)
     end
 end
 
-local function InsertInMarkerTable(c, z, x, y, ttype, targetname, faction)
+local function InsertInMarkerTable(c, z, x, y, targettype, targetname, faction)
     local affectedtable
     local pointstable
-    
+    local label
+    if debug then
+        DEFAULT_CHAT_FRAME:AddMessage(targettype .. targetname)
+    end
     -- Determine which tables to use
-    if ttype == "mail" then
+    if targettype == "mail" then
+        label = "Mailbox"
         affectedtable = MoreMapMarkersDB.AddedMailboxes
         pointstable = points.mail
-    elseif ttype == "flight" then
+    elseif targettype == "flight" then
+        label = "Flight Master"
         affectedtable = MoreMapMarkersDB.AddedFlightPoints
         pointstable = points.flight
     else
+        label = "Reagent Vendor"
         affectedtable = MoreMapMarkersDB.AddedReagentVendors
         pointstable = points.reagents
     end
@@ -599,16 +625,13 @@ local function InsertInMarkerTable(c, z, x, y, ttype, targetname, faction)
        IsMarkerPositionFree(c, z, x, y, affectedtable) then
         
         -- Insert the new marker with the appropriate fields
-        if ttype == "mail" then
+        if targettype == "mail" then
             table.insert(affectedtable[c][z], {x, y, targetname or ""})
         else -- flight or reagents
             table.insert(affectedtable[c][z], {x, y, targetname or "", faction})
         end
 
         -- Print confirmation message
-        local label = ttype == "mail" and "Mailbox" 
-                    or ttype == "flight" and "Flight Master" 
-                    or "Reagent Vendor"
         DEFAULT_CHAT_FRAME:AddMessage(string.format([[{ %.3f, %.3f, %s, %s },--%s]], x, y, targetname or "", faction or "nil", GetZoneText()))
         DEFAULT_CHAT_FRAME:AddMessage(label.." added.")
     else
