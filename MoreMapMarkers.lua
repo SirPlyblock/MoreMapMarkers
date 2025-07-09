@@ -13,7 +13,7 @@ local REAG_SIZE = 16
 local TAXI_TEXTURE = "Interface\\Addons\\MoreMapMarkers\\Images\\taxi.tga"
 local TAXI_SIZE = 28
 
-local debug = true
+local debug = false
 local lastCurrentContinent, lastCurrentZone
 
 local MoreMapMarkerFrame
