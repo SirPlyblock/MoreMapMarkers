@@ -258,6 +258,7 @@ local points = {
             },
             [36] = {
                 { 0.095, 0.597, "Shellei Brondir", "Alliance" },
+				{ 0.227, 0.654, "Greta Stonehammer", "Alliance"	},               
             },
         },
     },
