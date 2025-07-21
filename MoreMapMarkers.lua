@@ -169,6 +169,9 @@ local points = {
                 { 0.428, 0.725, "Razzit", nil },
                 { 0.675, 0.514, "Baldruc", "Alliance" },
             },
+            [11] = {
+				{ 0.345, 0.539, "Brakkar", "Horde" },
+			},
             [12] = {
                 { 0.755, 0.444, "Shyn", "Horde" },
             },
