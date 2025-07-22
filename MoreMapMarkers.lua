@@ -157,7 +157,10 @@ local points = {
                 { 0.344, 0.480, "Daelyshia", "Alliance" },
                 { 0.732, 0.616, "Vhulgra", "Horde" },
                 { 0.122, 0.338, "Andruk", "Horde" },                
-            },   
+            },
+            [3] = {
+				    { 0.220, 0.496, "Kroum", "Horde" },
+			},
             [6] = {
                 { 0.363, 0.456, "Caylais Moonfeather", "Alliance" },
             },
