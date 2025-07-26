@@ -95,6 +95,7 @@ local points = {
                 { 0.737, 0.462, "" },
             },
             [12] = {
+                { 0.480, 0.419, "" },
                 { 0.429, 0.655, "" },
             },
             [16] = {
@@ -117,6 +118,7 @@ local points = {
                 { 0.421, 0.772, "" },
             },
             [25] = {
+                { 0.368, 0.691, "" },
                 { 0.617, 0.76, "" },
                 { 0.745, 0.553, "" },
             },
@@ -227,6 +229,10 @@ local points = {
             [10] = {
                 { 0.775, 0.443, "Felicia Maline", "Alliance" },
             },
+            [11] = {
+				{ 0.816, 0.593, "Khaelyn Steelwing", "Alliance" },
+                { 0.802, 0.570, "Georgia", "Horde" },
+			},
             [16] = {
                 { 0.601, 0.186, "Zarise", "Horde" },
             },
@@ -294,6 +300,7 @@ local points = {
                 { 0.192, 0.561, "Barim Jurgenstaad", "Alliance" },
             },
             [25] = {
+				{ 0.532, 0.452, "Brother Cassius", "Alliance" },
                 { 0.631, 0.749, "Kyra Boucher", "Alliance" },
             },
             [33] = {
